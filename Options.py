@@ -879,12 +879,12 @@ while True:
     print("strategy run initiated")
     start_time = current_time.replace(hour=9, minute=14, second=0, microsecond=0)
     end_time = current_time.replace(hour=15, minute=45, second=0, microsecond=0)
+    if current_time >= next_run_time:
+        repeat_every_day()
+        # Schedule for the next day at 9 AM
+        next_run_time += timedelta(days=1)
 
     if start_time < current_time <= end_time:
         main_strategy()
         time.sleep(3)
 
-    if current_time >= next_run_time:
-        repeat_every_day()
-        # Schedule for the next day at 9 AM
-        next_run_time += timedelta(days=1)
