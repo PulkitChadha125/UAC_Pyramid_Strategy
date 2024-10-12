@@ -99,6 +99,11 @@ def get_user_settings():
     except Exception as e:
         print("Error happened in fetching symbol", str(e))
 
+def StokDevlogs(message):
+    with open('StockDevLog.txt', 'a') as file:  # Open the file in append mode
+        file.write(message + '\n')
+
+
 def write_to_order_logs(message):
     with open('OrderLog.txt', 'a') as file:  # Open the file in append mode
         file.write(message + '\n')
@@ -118,6 +123,7 @@ result_dict={}
 def get_api_credentials():
     credentials = {}
     delete_file_contents("OrderLog.txt")
+    delete_file_contents("StockDevLog.txt")
     try:
         df = pd.read_csv('Credentials.csv')
         for index, row in df.iterrows():
@@ -161,23 +167,6 @@ def stock_dev_login_multiclient(client_dict):
 
 stock_dev_login_multiclient(client_dict)
 
-def stockdev_multiclient_orderplacement_sell(basesymbol,client_dict,timestamp,symbol,direction,Stoploss,Target,qty,price, side):
-    Orderqty=None
-    for value, daram in client_dict.items():
-        Title = daram['Title']
-        if isinstance(Title, str):
-
-            Orderqty=qty*daram['QtyMultiplier']
-            res=Stockdeveloper.regular_order(autotrader=daram["autotrader"],account=daram['Title'], segment="NSE", symbol=symbol,
-                                         direction=direction
-                                         , orderType="LIMIT", productType='DELIVERY', qty=Orderqty,
-                                         price=price)
-            print(res)
-            orderlog = (
-                f"{timestamp} Sell Order executed {side} side {symbol} @  {price},stoploss= {Stoploss}, "
-                f"target= {Target} : Account = {daram['Title']} ")
-            print(orderlog)
-            write_to_order_logs(orderlog)
 def stockdev_multiclient_orderplacement_buy(basesymbol,client_dict,timestamp,symbol,direction,Stoploss,Target,qty,price, side):
     Orderqty=None
     for value, daram in client_dict.items():
@@ -185,40 +174,38 @@ def stockdev_multiclient_orderplacement_buy(basesymbol,client_dict,timestamp,sym
         if isinstance(Title, str):
             Orderqty=qty*daram['QtyMultiplier']
             res=Stockdeveloper.regular_order(autotrader=daram["autotrader"],account=daram['Title'], segment="NSE", symbol=symbol,
-                                         direction=direction
-                                         , orderType="LIMIT", productType='DELIVERY', qty=Orderqty,
+                                         direction=direction, orderType="MARKET", productType='NORMAL', qty=Orderqty,
                                          price=price)
             print(res)
             orderlog = (
                 f"{timestamp} Buy Order executed {side} side {symbol} @  {price},stoploss= {Stoploss}, "
                 f"target= {Target} : Account = {daram['Title']} ")
             print(orderlog)
-            write_to_order_logs(orderlog)
+            StokDevlogs(orderlog)
 
 def stockdev_multiclient_orderplacement_exit(basesymbol,client_dict,timestamp,symbol,direction,Stoploss,Target,qty,price,log):
     Orderqty = None
     for value, daram in client_dict.items():
         Title = daram['Title']
-        if isinstance(Title, str):
-            if basesymbol=="NIFTY":
-                Orderqty=qty*daram['NiftyQtyMultiplier']
-            if basesymbol=="BANKNIFTY":
-                Orderqty=qty*daram['Bankniftyultiplier']
-            Stockdeveloper.regular_order(autotrader=daram["autotrader"],account=daram['Title'], segment="NSE", symbol=symbol,
-                                         direction=direction
-                                         , orderType="MARKET", productType='INTRADAY', qty=Orderqty,
+        Orderqty=qty*daram['QtyMultiplier']
+        Stockdeveloper.regular_order(autotrader=daram["autotrader"],account=daram['Title'], segment="NSE", symbol=symbol,
+                                         direction=direction, orderType="MARKET", productType='NORMAL', qty=Orderqty,
                                          price=price)
-            orderlog = (
+        orderlog = (
                 f"{timestamp} {log} {symbol} @  {price} "
                 f"target= {Target} : Account = {daram['Title']} ")
-            print(orderlog)
-            write_to_order_logs(orderlog)
+        print(orderlog)
+        StokDevlogs(orderlog)
+
+
+
 def get_token(symbol):
     df= pd.read_csv("Instrument.csv")
     row = df.loc[df['symbol'] == symbol]
     if not row.empty:
         token = row.iloc[0]['token']
         return token
+
 tradedictcall={}
 tradedictput={}
 TradeQtyPriceDict={}
@@ -248,6 +235,15 @@ def main_strategy():
                 EntryTime = datetime.strptime(EntryTime, "%H:%M").time()
                 EntryDate = params['EntryDate']
                 EntryDate = datetime.strptime(EntryDate, "%d-%b-%y")
+
+                ExitTime = params['EntryTime']
+                ExitTime = datetime.strptime(ExitTime, "%H:%M").time()
+                ExitDate = params['EntryDate']
+                ExitDate = datetime.strptime(ExitDate, "%d-%b-%y")
+                combined_exit_datetime = datetime.combine(ExitDate, ExitTime)
+                print("ExitTime: ",ExitTime)
+                print("ExitDate: ", ExitDate)
+                print("combined_exit_datetime: ", combined_exit_datetime)
 
                 current_date = datetime.now().date()
                 current_time = datetime.now().time()
@@ -315,7 +311,8 @@ def main_strategy():
                                                                         token=get_token(params["InitialPut"]))
 
                         print("callltp: ",params["callltp"])
-                        print("putltp: ",params["putltp"] )
+                        print("putltp: ",params["putltp"])
+
                         params["InitialTrade"]="BUY"
 
                         if params["Calculation"]=="POINT":
@@ -348,10 +345,8 @@ def main_strategy():
                         params["UpdatedLotsCall"] = params["Quantity"]
                         params["UpdatedLotsPut"] = params["Quantity"]
                         # "lotCall": row['lot'], 'lotvalueCall': None, "lotPut": row['lot'], 'lotvaluePut': None
-                        params[
-                            "StockDevPutSymbol"] = f"{params['Symbol']}_{Stockdeveloper.convert_date(params['TradeExpiery'])}_PE_{params['putstrike']}"
-                        params[
-                            "StockDevCallSymbol"] = f"{params['Symbol']}_{Stockdeveloper.convert_date(params['TradeExpiery'])}_CE_{params['callstrike']}"
+                        params["StockDevPutSymbol"] = f"{params['BaseSymbol']}_{Stockdeveloper.convert_date(params['TradeExpiery'])}_PE_{params['putstrike']}"
+                        params["StockDevCallSymbol"] = f"{params['BaseSymbol']}_{Stockdeveloper.convert_date(params['TradeExpiery'])}_CE_{params['callstrike']}"
                         tradedictcall[f"trade_{len(tradedictcall) + 1}"] = {
                             "tradeltp": params["callltp"],
                             "Lots": params["lotvalueCall"],
@@ -382,16 +377,11 @@ def main_strategy():
 
                         stockdev_multiclient_orderplacement_buy(basesymbol=params['BaseSymbol'], client_dict=client_dict,
                                                         timestamp=timestamp, symbol=params["StockDevPutSymbol"],
-                                                        direction="BUY", Stoploss=0,
-                                                        Target=0,
-                                                        qty=params["Quantity"], price=params["putltp"], side="PUT")
+                                                        direction="BUY", Stoploss=0,Target=0,qty=params["Quantity"], price=params["putltp"], side="PUT")
 
                         stockdev_multiclient_orderplacement_buy(basesymbol=params['BaseSymbol'],
-                                                                client_dict=client_dict,
-                                                                timestamp=timestamp, symbol=params["StockDevCallSymbol"],
-                                                                direction="BUY", Stoploss=0,
-                                                                Target=0,
-                                                                qty=params["Quantity"], price=params["callltp"],
+                                                                client_dict=client_dict,timestamp=timestamp, symbol=params["StockDevCallSymbol"],
+                                                                direction="BUY", Stoploss=0,Target=0,qty=params["Quantity"], price=params["callltp"],
                                                                 side="CALL")
 
                 if params["InitialTrade"]=="BUY":
@@ -443,12 +433,6 @@ def main_strategy():
                         given_time = last_rowtime.time()
 
                         curr_time = normalize_current_time(datetime.now(), params['TFMIN'])
-                        print("curr_time: ", curr_time)
-                        print("curre_time.hour: ",curr_time.hour)
-                        print("curr_time.minute: ",curr_time.minute)
-                        print("given_time.hour: ",given_time.hour)
-                        print("given_time.hour: ",given_time.minute)
-
                         time.sleep(1)
                         if curr_time.hour == given_time.hour and curr_time.minute == given_time.minute:
                             last_row_call = data_call.iloc[-2]
@@ -555,169 +539,179 @@ def main_strategy():
 
 
                     if params["putltp"]>=params["UpsidePut"] and params["UpsidePut"] is not None:
-                        for key, trade_info in tradedictput.items():
-                            stockdev_multiclient_orderplacement_exit(
-                                basesymbol=params['Basesymbol'],  # Basesymbol from params
+                        total_stock_dev_qty = sum(trade["StockDevQty"] for trade in tradedictput.values())
+                        stockdev_multiclient_orderplacement_exit(
+                                basesymbol=params['BaseSymbol'],  # Basesymbol from params
                                 client_dict=client_dict,  # Assuming client_dict is defined elsewhere
                                 timestamp=timestamp,  # Assuming timestamp is defined elsewhere
-                                symbol=trade_info["StockDevSymbol"],  # Symbol from tradedictput
+                                symbol=next(iter(tradedictput.values()))['StockDevSymbol'],  # Symbol from tradedictput
                                 direction="SELL",  # Direction is "SELL"
                                 Stoploss=0,  # Stoploss is 0 as per your example
                                 Target=0,  # Target is 0 as per your example
-                                qty=trade_info["StockDevQty"],  # Quantity from tradedictput
-                                price=trade_info["tradeltp"],  # LTP (Last Traded Price) from tradedictput
-                                log=f"Target executed PUT trade {key} @ "  # Log message includes the key
+                                qty=total_stock_dev_qty,  # Quantity from tradedictput
+                                price=params["callltp"],  # LTP (Last Traded Price) from tradedictput
+                                log=f"UpsidePut executed exiting put trade {next(iter(tradedictput.values()))['StockDevSymbol']} @ "  # Log message includes the key
                             )
+
                         tradedictput.clear()
-                        new_time, params["putaveragetime"] = add_and_normalize_time(10)
-                        params['putaveragecount']=0
-                        exitprice = params["putltp"]
+                        params["putaveragetime"]=None
+
+                        if datetime.now() <= combined_exit_datetime:
+                            new_time, params["putaveragetime"] = add_and_normalize_time(10)
+                            params['putaveragecount']=0
+                            exitprice = params["putltp"]
 
 
-                        try:
-                            ltp = AngelIntegration.get_ltp(segment="NFO", symbol=params['Symbol'],
-                                                           token=get_token(params['Symbol']))
+                            try:
+                                ltp = AngelIntegration.get_ltp(segment="NFO", symbol=params['Symbol'],
+                                                               token=get_token(params['Symbol']))
 
-                        except Exception as e:
-                            print("Error happened in fetching spot ltp : ", str(e))
-                            time.sleep(1)
-                            ltp = AngelIntegration.get_ltp(segment="NFO", symbol=params['Symbol'],
-                                                           token=get_token(params['Symbol']))
-                        rounded_price = round_to_nearest(number=ltp, nearest=params['StrikeStep'])
-                        print("rounded_price: ", rounded_price)
-                        if params['OptionType'] == "ATM":
-                            selectedstrikecall = rounded_price
-                            selectedstrikeput = rounded_price
-                        if params['OptionType'] == "OTM":
-                            selectedstrikecall = rounded_price + int(params["StrikeDistance"])
-                            selectedstrikeput = rounded_price - int(params["StrikeDistance"])
-                        if params['OptionType'] == "ITM":
-                            selectedstrikecall = rounded_price - int(params["StrikeDistance"])
-                            selectedstrikeput = rounded_price + int(params["StrikeDistance"])
+                            except Exception as e:
+                                print("Error happened in fetching spot ltp : ", str(e))
+                                time.sleep(1)
+                                ltp = AngelIntegration.get_ltp(segment="NFO", symbol=params['Symbol'],
+                                                               token=get_token(params['Symbol']))
+                            rounded_price = round_to_nearest(number=ltp, nearest=params['StrikeStep'])
+                            print("rounded_price: ", rounded_price)
 
 
-                        params['putstrike'] = selectedstrikeput
-                        params["StockDevPutSymbol"] = f"{params['Symbol']}_{Stockdeveloper.convert_date(params['TradeExpiery'])}_PE_{params['putstrike']}"
-                        tradedictput[f"trade_{len(tradedictput) + 1}"] = {
-                            "tradeltp": params["putltp"],
-                            "Lots": params["lotvaluePut"],
-                            "Moneyinvested": params["lotvaluePut"] * params["putltp"],
-                            "StockDevSymbol": params["StockDevPutSymbol"],
-                            "StockDevQty": params['UpdatedLotsPut'],
-                        }
-                        params["UpdatedPut"] = f"{params['BaseSymbol']}{params['FormatedDate']}{selectedstrikeput}PE"
-                        params["putltp"]=AngelIntegration.get_ltp(segment='NFO', symbol=params['UpdatedPut'],token=get_token(params['UpdatedPut']))
+                            if params['OptionType'] == "ATM":
+                                selectedstrikecall = rounded_price
+                                selectedstrikeput = rounded_price
+                            if params['OptionType'] == "OTM":
+                                selectedstrikecall = rounded_price + int(params["StrikeDistance"])
+                                selectedstrikeput = rounded_price - int(params["StrikeDistance"])
+                            if params['OptionType'] == "ITM":
+                                selectedstrikecall = rounded_price - int(params["StrikeDistance"])
+                                selectedstrikeput = rounded_price + int(params["StrikeDistance"])
 
-                        if params["Calculation"] == "POINT":
-                            params["UpsidePut"] = params["putltp"] + params["UpsideTrdeDist"]
-                            params["DownsidePut"] = params["putltp"] - params["DownsideTradeDist"]
-                        if params["Calculation"] == "PERCENTAGE":
-                            params["UpsidePut"] = params["putltp"] * params["UpsideTrdeDist"]*0.01
-                            params["UpsidePut"] = params["UpsidePut"] + params["putltp"]
-                            params["DownsidePut"] = params["putltp"] * params["DownsideTradeDist"]*0.01
-                            params["DownsidePut"] = params["putltp"] - params["DownsidePut"]
 
-                        params["lotvaluePut"] = params["lotPut"]
-                        params["count"]=1
-                        params["InitialLotsPut"] = params["Quantity"]
-                        OrderLog = (f"{timestamp} UpsidePut: Previous buy put exited {params['InitialPut']} @ exitprice= {exitprice} opening new buy trade  put@ "
-                                        f"{params['UpdatedPut']} @ {params['putltp']},  "
-                                    f"  Put Upside target : {params['UpsidePut']},"
-                                        f"Put downside Average  Val: {params['DownsidePut']}, put aversge check time : {params['putaveragetime'] }")
-                        print(OrderLog)
-                        write_to_order_logs(OrderLog)
-                        params["InitialPut"] = params["UpdatedPut"]
-                        stockdev_multiclient_orderplacement_buy(basesymbol=params['BaseSymbol'],
-                                                                client_dict=client_dict,
-                                                                timestamp=timestamp, symbol=params["StockDevPutSymbol"],
-                                                                direction="BUY", Stoploss=0,
-                                                                Target=0,
-                                                                qty=params["Quantity"], price=params["putltp"],
-                                                                side="PUT")
+                            params['putstrike'] = selectedstrikeput
+                            params["StockDevPutSymbol"] = f"{params['BaseSymbol']}_{Stockdeveloper.convert_date(params['TradeExpiery'])}_PE_{params['putstrike']}"
+
+                            params["UpdatedPut"] = f"{params['BaseSymbol']}{params['FormatedDate']}{selectedstrikeput}PE"
+                            params["putltp"]=AngelIntegration.get_ltp(segment='NFO', symbol=params['UpdatedPut'],token=get_token(params['UpdatedPut']))
+
+                            tradedictput[f"trade_{len(tradedictput) + 1}"] = {
+                                "tradeltp": params["putltp"],
+                                "Lots": params["lotvaluePut"],
+                                "Moneyinvested": params["lotvaluePut"] * params["putltp"],
+                                "StockDevSymbol": params["StockDevPutSymbol"],
+                                "StockDevQty": params['UpdatedLotsPut'],
+                            }
+
+                            if params["Calculation"] == "POINT":
+                                params["UpsidePut"] = params["putltp"] + params["UpsideTrdeDist"]
+                                params["DownsidePut"] = params["putltp"] - params["DownsideTradeDist"]
+                            if params["Calculation"] == "PERCENTAGE":
+                                params["UpsidePut"] = params["putltp"] * params["UpsideTrdeDist"]*0.01
+                                params["UpsidePut"] = params["UpsidePut"] + params["putltp"]
+                                params["DownsidePut"] = params["putltp"] * params["DownsideTradeDist"]*0.01
+                                params["DownsidePut"] = params["putltp"] - params["DownsidePut"]
+
+                            params["lotvaluePut"] = params["lotPut"]
+                            params["count"]=1
+                            params["InitialLotsPut"] = params["Quantity"]
+                            OrderLog = (f"{timestamp} UpsidePut: Previous buy put exited {params['InitialPut']} @ exitprice= {exitprice} opening new buy trade  put@ "
+                                            f"{params['UpdatedPut']} @ {params['putltp']},  "
+                                        f"  Put Upside target : {params['UpsidePut']},"
+                                            f"Put downside Average  Val: {params['DownsidePut']}, put aversge check time : {params['putaveragetime'] }")
+                            print(OrderLog)
+                            write_to_order_logs(OrderLog)
+                            params["InitialPut"] = params["UpdatedPut"]
+                            stockdev_multiclient_orderplacement_buy(basesymbol=params['BaseSymbol'],
+                                                                    client_dict=client_dict,
+                                                                    timestamp=timestamp, symbol=params["StockDevPutSymbol"],
+                                                                    direction="BUY", Stoploss=0,
+                                                                    Target=0,
+                                                                    qty=params["Quantity"], price=params["putltp"],
+                                                                    side="PUT")
 
                     if params["callltp"] >= params["UpsideCall"] and params["UpsideCall"] is not None:
-                        for key, trade_info in tradedictput.items():
-                            stockdev_multiclient_orderplacement_exit(
-                                basesymbol=params['Basesymbol'],  # Basesymbol from params
+                        total_stock_dev_qty = sum(trade["StockDevQty"] for trade in tradedictcall.values())
+                        stockdev_multiclient_orderplacement_exit(
+                                basesymbol=params['BaseSymbol'],  # Basesymbol from params
                                 client_dict=client_dict,  # Assuming client_dict is defined elsewhere
                                 timestamp=timestamp,  # Assuming timestamp is defined elsewhere
-                                symbol=trade_info["StockDevSymbol"],  # Symbol from tradedictput
+                                symbol=next(iter(tradedictcall.values()))["StockDevSymbol"],  # Symbol from tradedictput
                                 direction="SELL",  # Direction is "SELL"
                                 Stoploss=0,  # Stoploss is 0 as per your example
                                 Target=0,  # Target is 0 as per your example
-                                qty=trade_info["StockDevQty"],  # Quantity from tradedictput
-                                price=trade_info["tradeltp"],  # LTP (Last Traded Price) from tradedictput
-                                log=f"Target executed Call trade {key} @ "  # Log message includes the key
+                                qty=total_stock_dev_qty,  # Quantity from tradedictput
+                                price=params["callltp"],  # LTP (Last Traded Price) from tradedictput
+                                log=f"UpsideCall executed previous call exited {next(iter(tradedictcall.values()))['StockDevSymbol']} @ "  # Log message includes the key
                             )
 
                         tradedictcall.clear()
-                        new_time, params["callaveragetime"] = add_and_normalize_time(10)
-                        params['callavgcount']=0
-                        exitprice=params["callltp"]
+                        params["callaveragetime"]=None
+                        if datetime.now() <= combined_exit_datetime:
+                            new_time, params["callaveragetime"] = add_and_normalize_time(10)
+                            params['callavgcount']=0
+                            exitprice=params["callltp"]
 
 
-                        try:
-                            ltp = AngelIntegration.get_ltp(segment="NFO", symbol=params['Symbol'],
+                            try:
+                                ltp = AngelIntegration.get_ltp(segment="NFO", symbol=params['Symbol'],
+                                                                   token=get_token(params['Symbol']))
+
+                            except Exception as e:
+                                print("Error happened in fetching spot ltp : ", str(e))
+                                time.sleep(1)
+                                ltp = AngelIntegration.get_ltp(segment="NFO", symbol=params['Symbol'],
                                                                token=get_token(params['Symbol']))
 
-                        except Exception as e:
-                            print("Error happened in fetching spot ltp : ", str(e))
-                            time.sleep(1)
-                            ltp = AngelIntegration.get_ltp(segment="NFO", symbol=params['Symbol'],
-                                                           token=get_token(params['Symbol']))
+                            rounded_price = round_to_nearest(number=ltp, nearest=params['StrikeStep'])
+                            print("rounded_price: ", rounded_price)
+                            if params['OptionType'] == "ATM":
+                                selectedstrikecall = rounded_price
+                                selectedstrikeput = rounded_price
+                            if params['OptionType'] == "OTM":
+                                selectedstrikecall = rounded_price + int(params["StrikeDistance"])
+                                selectedstrikeput = rounded_price - int(params["StrikeDistance"])
+                            if params['OptionType'] == "ITM":
+                                selectedstrikecall = rounded_price - int(params["StrikeDistance"])
+                                selectedstrikeput = rounded_price + int(params["StrikeDistance"])
 
-                        rounded_price = round_to_nearest(number=ltp, nearest=params['StrikeStep'])
-                        print("rounded_price: ", rounded_price)
-                        if params['OptionType'] == "ATM":
-                            selectedstrikecall = rounded_price
-                            selectedstrikeput = rounded_price
-                        if params['OptionType'] == "OTM":
-                            selectedstrikecall = rounded_price + int(params["StrikeDistance"])
-                            selectedstrikeput = rounded_price - int(params["StrikeDistance"])
-                        if params['OptionType'] == "ITM":
-                            selectedstrikecall = rounded_price - int(params["StrikeDistance"])
-                            selectedstrikeput = rounded_price + int(params["StrikeDistance"])
-
-                        params["callstrike"] = selectedstrikecall
-                        params["StockDevCallSymbol"] = f"{params['Symbol']}_{Stockdeveloper.convert_date(params['TradeExpiery'])}_CE_{params['callstrike']}"
-                        tradedictcall[f"trade_{len(tradedictcall) + 1}"] = {
-                            "tradeltp": params["callltp"],
-                            "Lots": params["lotvalueCall"],
-                            "Moneyinvested": params["lotvalueCall"] * params["callltp"],
-                            "StockDevSymbol": params["StockDevCallSymbol"],
-                            "StockDevQty": params['UpdatedLotsCall'],
-                        }
-                        params["UpdatedCall"] = f"{params['BaseSymbol']}{params['FormatedDate']}{selectedstrikecall}CE"
-                        params["callltp"]=AngelIntegration.get_ltp(segment='NFO', symbol=params['UpdatedCall'],token=get_token(params['UpdatedCall']))
-                        if params["Calculation"] == "POINT":
-                            params["UpsideCall"] = params["callltp"] + params["UpsideTrdeDist"]
-                            params["DownsideCall"] = params["callltp"] - params["DownsideTradeDist"]
+                            params["callstrike"] = selectedstrikecall
+                            params["StockDevCallSymbol"] = f"{params['BaseSymbol']}_{Stockdeveloper.convert_date(params['TradeExpiery'])}_CE_{params['callstrike']}"
+                            params["UpdatedCall"] = f"{params['BaseSymbol']}{params['FormatedDate']}{selectedstrikecall}CE"
+                            params["callltp"]=AngelIntegration.get_ltp(segment='NFO', symbol=params['UpdatedCall'],token=get_token(params['UpdatedCall']))
+                            tradedictcall[f"trade_{len(tradedictcall) + 1}"] = {
+                                "tradeltp": params["callltp"],
+                                "Lots": params["lotvalueCall"],
+                                "Moneyinvested": params["lotvalueCall"] * params["callltp"],
+                                "StockDevSymbol": params["StockDevCallSymbol"],
+                                "StockDevQty": params['UpdatedLotsCall'],
+                            }
+                            if params["Calculation"] == "POINT":
+                                params["UpsideCall"] = params["callltp"] + params["UpsideTrdeDist"]
+                                params["DownsideCall"] = params["callltp"] - params["DownsideTradeDist"]
 
 
-                        if params["Calculation"] == "PERCENTAGE":
-                            params["UpsideCall"] = params["callltp"] * params["UpsideTrdeDist"]*0.01
-                            params["UpsideCall"] = params["UpsideCall"] + params["callltp"]
-                            params["DownsideCall"] = params["callltp"] * params["DownsideTradeDist"]*0.01
-                            params["DownsideCall"] = params["callltp"] - params["DownsideCall"]
+                            if params["Calculation"] == "PERCENTAGE":
+                                params["UpsideCall"] = params["callltp"] * params["UpsideTrdeDist"]*0.01
+                                params["UpsideCall"] = params["UpsideCall"] + params["callltp"]
+                                params["DownsideCall"] = params["callltp"] * params["DownsideTradeDist"]*0.01
+                                params["DownsideCall"] = params["callltp"] - params["DownsideCall"]
 
-                        params["lotvalueCall"] = params["lotCall"]
-                        params["count"] = 1
-                        params["InitialLotsCall"] = params["Quantity"]
-                        OrderLog = (f"{timestamp} UpsideCall: Previous buy call exited {params['Initialcall']}@ {exitprice} opening new buy trade  call @"
-                                        f" {params['UpdatedCall']} @ {params['callltp']}, Call upside target Val : {params['UpsideCall'] },Call downside average Val: {params['DownsideCall']}"
-                                    f", call aversge check time : {params['callaveragetime'] }"
-                                        )
-                        print(OrderLog)
-                        write_to_order_logs(OrderLog)
-                        params["Initialcall"] = params["UpdatedCall"]
-                        stockdev_multiclient_orderplacement_buy(basesymbol=params['BaseSymbol'],
-                                                                client_dict=client_dict,
-                                                                timestamp=timestamp,
-                                                                symbol=params["StockDevCallSymbol"],
-                                                                direction="BUY", Stoploss=0,
-                                                                Target=0,
-                                                                qty=params["Quantity"], price=params["callltp"],
-                                                                side="CALL")
+                            params["lotvalueCall"] = params["lotCall"]
+                            params["count"] = 1
+                            params["InitialLotsCall"] = params["Quantity"]
+                            OrderLog = (f"{timestamp} UpsideCall: Previous buy call exited {params['Initialcall']}@ {exitprice} opening new buy trade  call @"
+                                            f" {params['UpdatedCall']} @ {params['callltp']}, Call upside target Val : {params['UpsideCall'] },Call downside average Val: {params['DownsideCall']}"
+                                        f", call aversge check time : {params['callaveragetime'] }"
+                                            )
+                            print(OrderLog)
+                            write_to_order_logs(OrderLog)
+                            params["Initialcall"] = params["UpdatedCall"]
+                            stockdev_multiclient_orderplacement_buy(basesymbol=params['BaseSymbol'],
+                                                                    client_dict=client_dict,
+                                                                    timestamp=timestamp,
+                                                                    symbol=params["StockDevCallSymbol"],
+                                                                    direction="BUY", Stoploss=0,
+                                                                    Target=0,
+                                                                    qty=params["Quantity"], price=params["callltp"],
+                                                                    side="CALL")
 
 
 
@@ -726,6 +720,7 @@ def main_strategy():
 
                     if (params['putaveragecount'] < params['NoOfAverage'] and
                             normalized_now >= params["putaveragetime"] and
+                            params["putaveragetime"] is not None and
                             params["DownsidePut"] is not None and
                             params['ha_close_last_put'] < params["DownsidePut"] and
                             is_candle_body_within_percent(
@@ -746,7 +741,7 @@ def main_strategy():
                         print("putltp: ", params["putltp"])
                         params["InitialLotsPut"] = params["UpdatedLotsPut"]
                         params["UpdatedLotsPut"] = int(params["UpdatedLotsPut"] * 2)
-                        params["lotvaluePut"] = params["lotPut"] * 2
+                        params["lotvaluePut"] = params["lotvaluePut"] * 2
                         tradedictput[f"trade_{len(tradedictput) + 1}"] = {
                             "tradeltp": params["putltp"],
                             "Lots": params["lotvaluePut"],
@@ -783,7 +778,7 @@ def main_strategy():
                                 f",updated put upside target: {params['UpsidePut']}, put downside average: {params['DownsidePut']}")
                         print(OrderLog)
                         write_to_order_logs(OrderLog)
-                        params["StockDevPutSymbol"] = f"{params['Symbol']}_{Stockdeveloper.convert_date(params['TradeExpiery'])}_PE_{params['putstrike']}"
+                        params["StockDevPutSymbol"] = f"{params['BaseSymbol']}_{Stockdeveloper.convert_date(params['TradeExpiery'])}_PE_{params['putstrike']}"
                         params['putaveragecount'] = params['putaveragecount'] + 1
                         stockdev_multiclient_orderplacement_buy(basesymbol=params['BaseSymbol'],
                                                                 client_dict=client_dict,
@@ -796,6 +791,7 @@ def main_strategy():
 
                     if (params['callavgcount'] < params['NoOfAverage'] and
                             normalized_now >= params["callaveragetime"] and
+                            params["callaveragetime"] is not None and
                             params["DownsideCall"] is not None and
                             params['ha_close_last_call'] < params["DownsideCall"] and
                             is_candle_body_within_percent(
@@ -816,7 +812,9 @@ def main_strategy():
                         # if params["count"]>1:
                         params["InitialLotsCall"] = params["UpdatedLotsCall"]
                         params["UpdatedLotsCall"] = int(params["UpdatedLotsCall"]*2)
-                        params["lotvalueCall"] = params["lotCall"] * 2
+
+                        params["lotvalueCall"] = params["lotvalueCall"] * 2
+
                         tradedictcall[f"trade_{len(tradedictcall) + 1}"] = {
                             "tradeltp": params["callltp"],
                             "Lots": params["lotvalueCall"],
@@ -850,7 +848,7 @@ def main_strategy():
                                         f" updated call upside target: {params['UpsideCall']}, call downside average: {params['DownsideCall']}")
                         print(OrderLog)
                         write_to_order_logs(OrderLog)
-                        params["StockDevCallSymbol"] = f"{params['Symbol']}_{Stockdeveloper.convert_date(params['TradeExpiery'])}_CE_{params['callstrike']}"
+                        params["StockDevCallSymbol"] = f"{params['BaseSymbol']}_{Stockdeveloper.convert_date(params['TradeExpiery'])}_CE_{params['callstrike']}"
                         params['callavgcount']=params['callavgcount']+1
                         stockdev_multiclient_orderplacement_buy(basesymbol=params['BaseSymbol'],
                                                                 client_dict=client_dict,
@@ -868,8 +866,25 @@ def main_strategy():
         print("Error happened in Main strategy loop: ", str(e))
         traceback.print_exc()
 
+def repeat_every_day():
+    AngelIntegration.login(api_key=api_key, username=username, pwd=pwd, totp_string=totp_string)
+    AngelIntegration.symbolmpping()
+
+next_run_time = datetime.now().replace(hour=9, minute=0, second=0, microsecond=0)
+if datetime.now() >= next_run_time:
+    next_run_time += timedelta(days=1)
 
 while True:
+    current_time = datetime.now()
     print("strategy run initiated")
-    main_strategy()
-    time.sleep(3)
+    start_time = current_time.replace(hour=9, minute=14, second=0, microsecond=0)
+    end_time = current_time.replace(hour=15, minute=45, second=0, microsecond=0)
+
+    if start_time < current_time <= end_time:
+        main_strategy()
+        time.sleep(3)
+
+    if current_time >= next_run_time:
+        repeat_every_day()
+        # Schedule for the next day at 9 AM
+        next_run_time += timedelta(days=1)

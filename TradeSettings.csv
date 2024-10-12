@@ -1,2 +1,2 @@
 Symbol,Quantity,lot,Timeframe,TFMIN,Segment,OptionType,StrikeStep,StrikeDistance,BaseSymbol,TradeExpiery,EntryDate,EntryTime,ExitDate,ExitTime,Calculation,DownsideTradeDist,UpsideTrdeDist,AverageTargetDist,CandlePercent,NoOfAverage
-NIFTY31OCT24FUT,25,1,FIVE_MINUTE,5,OPTIDX,ITM,50,200,NIFTY,10-Oct-24,04-Oct-24,12:25,04-Oct-24,23:45,PERCENTAGE,2,2,1,20,4
+NIFTY31OCT24FUT,25,1,FIVE_MINUTE,5,OPTIDX,ITM,50,200,NIFTY,17-Oct-24,11-Oct-24,10:15,11-Oct-24,23:45,PERCENTAGE,8,6,4,20,4
