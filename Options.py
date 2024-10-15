@@ -92,7 +92,7 @@ def get_user_settings():
                 'NoOfAverage':row['NoOfAverage'],'callavgcount':0,'putaveragecount':0,"putaveragetime":datetime.now(),"callaveragetime":datetime.now(),'TFMIN':row['TFMIN'],
                 'AverageTargetDist':row['AverageTargetDist'],'ha_close_last_put':None,'ha_open_last_put':None,'ha_high_last_put':None,'ha_low_last_put':None,
                 'ha_close_last_call':None,'ha_open_last_call':None,'ha_high_last_call':None,'ha_low_last_call':None,"runtimecall": datetime.now(),"runtimeput": datetime.now(),
-                "callcheck": None, "putcheck": None,"StockDevPutSymbol":None,"StockDevCallSymbol":None,"callstrike":None,'putstrike':None
+                "callcheck": None, "putcheck": None,"StockDevPutSymbol":None,"StockDevCallSymbol":None,"callstrike":None,'putstrike':None,'combinedexitdatetime': None
             }
             result_dict[row['Symbol']] = symbol_dict
         print("result_dict: ", result_dict)
@@ -236,14 +236,19 @@ def main_strategy():
                 EntryDate = params['EntryDate']
                 EntryDate = datetime.strptime(EntryDate, "%d-%b-%y")
 
-                ExitTime = params['EntryTime']
+                ExitTime = params['ExitTime']
                 ExitTime = datetime.strptime(ExitTime, "%H:%M").time()
-                ExitDate = params['EntryDate']
+
+                ExitDate = params['ExitDate']
                 ExitDate = datetime.strptime(ExitDate, "%d-%b-%y")
                 combined_exit_datetime = datetime.combine(ExitDate, ExitTime)
                 print("ExitTime: ",ExitTime)
                 print("ExitDate: ", ExitDate)
-                print("combined_exit_datetime: ", combined_exit_datetime)
+                print("Current time: ",datetime.now())
+                params['combinedexitdatetime'] =combined_exit_datetime
+                print("combined_exit_datetime: ", params['combinedexitdatetime'])
+
+
 
                 current_date = datetime.now().date()
                 current_time = datetime.now().time()
@@ -506,17 +511,17 @@ def main_strategy():
                             params['runtimeput'] = next_specific_part_time
 
 
-
-                    print("Callaveragetime :", params["callaveragetime"])
-                    print("putaverage time :", params["putaveragetime"])
-                    print("///////////////////////////////////////")
-                    print("CallPreviouscandletime :",params["callcheck"])
-                    print("putPreviouscandletime :",params["putcheck"])
-                    print("///////////////////////////////////////")
-                    print("hahigh call:", params['ha_high_last_call'])
-                    print("halow call:", params['ha_low_last_call'])
-                    print("haclose call:", params['ha_close_last_call'])
-                    print("haopen call:", params['ha_open_last_call'])
+                    print()
+                    # print("Callaveragetime :", params["callaveragetime"])
+                    # print("putaverage time :", params["putaveragetime"])
+                    # print("///////////////////////////////////////")
+                    # print("CallPreviouscandletime :",params["callcheck"])
+                    # print("putPreviouscandletime :",params["putcheck"])
+                    # print("///////////////////////////////////////")
+                    # print("hahigh call:", params['ha_high_last_call'])
+                    # print("halow call:", params['ha_low_last_call'])
+                    # print("haclose call:", params['ha_close_last_call'])
+                    # print("haopen call:", params['ha_open_last_call'])
 
                     print("Ha condition call : ", is_candle_body_within_percent(close=params['ha_close_last_call'],
                                                                                 open_price=params[
@@ -556,7 +561,7 @@ def main_strategy():
                         tradedictput.clear()
                         params["putaveragetime"]=None
 
-                        if datetime.now() <= combined_exit_datetime:
+                        if datetime.now() <= params['combinedexitdatetime']:
                             new_time, params["putaveragetime"] = add_and_normalize_time(10)
                             params['putaveragecount']=0
                             exitprice = params["putltp"]
@@ -644,7 +649,7 @@ def main_strategy():
 
                         tradedictcall.clear()
                         params["callaveragetime"]=None
-                        if datetime.now() <= combined_exit_datetime:
+                        if datetime.now() <= params['combinedexitdatetime']:
                             new_time, params["callaveragetime"] = add_and_normalize_time(10)
                             params['callavgcount']=0
                             exitprice=params["callltp"]
@@ -729,7 +734,7 @@ def main_strategy():
                                 high=params['ha_high_last_put'],
                                 low=params['ha_low_last_put'],
                                 percent=params['CandlePercent']
-                            )==True):
+                            )==True and datetime.now() <= params['combinedexitdatetime']):
                         # params["putaveragetime"] = datetime.now() + timedelta(minutes=params['TFMIN'])
                         new_time, params["putaveragetime"] = add_and_normalize_time(params['TFMIN'])
 
@@ -800,7 +805,7 @@ def main_strategy():
                                 high=params['ha_high_last_call'],
                                 low=params['ha_low_last_call'],
                                 percent=params['CandlePercent']
-                            )==True):
+                            )==True and datetime.now() <= params['combinedexitdatetime']):
                         # =datetime.now() + timedelta(minutes=params['TFMIN'])
 
                         new_time, params["callaveragetime"] = add_and_normalize_time(params['TFMIN'])
