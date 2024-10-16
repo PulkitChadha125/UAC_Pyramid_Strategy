@@ -1,0 +1,16 @@
+15/10/2024 13:00:02 Buy Order executed PUT side NIFTY_17-Oct-2024_PE_25300 @  283.65,stoploss= 0, target= 0 : Account = NandkumarNIBM 
+15/10/2024 13:00:02 Buy Order executed CALL side NIFTY_17-Oct-2024_CE_24900 @  188.9,stoploss= 0, target= 0 : Account = NandkumarNIBM 
+15/10/2024 13:02:52 UpsidePut executed exiting put trade NIFTY_17-Oct-2024_PE_25300 @  NIFTY_17-Oct-2024_PE_25300 @  168.95 target= 0 : Account = NandkumarNIBM 
+15/10/2024 13:02:52 Buy Order executed PUT side NIFTY_17-Oct-2024_PE_25300 @  312.05,stoploss= 0, target= 0 : Account = NandkumarNIBM 
+15/10/2024 13:05:49 UpsidePut executed exiting put trade NIFTY_17-Oct-2024_PE_25300 @  NIFTY_17-Oct-2024_PE_25300 @  157.8 target= 0 : Account = NandkumarNIBM 
+15/10/2024 13:05:49 Buy Order executed PUT side NIFTY_17-Oct-2024_PE_25250 @  287.0,stoploss= 0, target= 0 : Account = NandkumarNIBM 
+15/10/2024 13:25:01 Buy Order executed PUT side NIFTY_17-Oct-2024_PE_25250 @  256.7,stoploss= 0, target= 0 : Account = NandkumarNIBM 
+15/10/2024 13:25:01 Buy Order executed CALL side NIFTY_17-Oct-2024_CE_24900 @  174.85,stoploss= 0, target= 0 : Account = NandkumarNIBM 
+15/10/2024 13:39:07 UpsideCall executed previous call exited NIFTY_17-Oct-2024_CE_24900 @  NIFTY_17-Oct-2024_CE_24900 @  190.0 target= 0 : Account = NandkumarNIBM 
+15/10/2024 13:39:07 Buy Order executed CALL side NIFTY_17-Oct-2024_CE_24950 @  155.1,stoploss= 0, target= 0 : Account = NandkumarNIBM 
+15/10/2024 14:15:01 Buy Order executed CALL side NIFTY_17-Oct-2024_CE_24950 @  141.75,stoploss= 0, target= 0 : Account = NandkumarNIBM 
+15/10/2024 14:29:39 UpsideCall executed previous call exited NIFTY_17-Oct-2024_CE_24950 @  NIFTY_17-Oct-2024_CE_24950 @  156.65 target= 0 : Account = NandkumarNIBM 
+15/10/2024 14:29:39 Buy Order executed CALL side NIFTY_17-Oct-2024_CE_24950 @  158.0,stoploss= 0, target= 0 : Account = NandkumarNIBM 
+15/10/2024 15:05:01 Buy Order executed CALL side NIFTY_17-Oct-2024_CE_24950 @  141.95,stoploss= 0, target= 0 : Account = NandkumarNIBM 
+15/10/2024 15:23:06 UpsideCall executed previous call exited NIFTY_17-Oct-2024_CE_24950 @  NIFTY_17-Oct-2024_CE_24950 @  156.0 target= 0 : Account = NandkumarNIBM 
+15/10/2024 15:23:06 Buy Order executed CALL side NIFTY_17-Oct-2024_CE_24950 @  156.0,stoploss= 0, target= 0 : Account = NandkumarNIBM 

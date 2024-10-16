@@ -1,0 +1,27 @@
+15/10/2024 13:00:02 Initial buy trade executed @ NIFTY31OCT24FUT, CallSymbolNIFTY17OCT2424900CE, CallLtp= 188.9, CallUpsideTarget=200.234,CalldownsideAverage: 173.788, lots=25,callaveragetime: 2024-10-15 13:10:00
+15/10/2024 13:00:02 Initial buy trade executed @ NIFTY31OCT24FUT, PutSymbolNIFTY17OCT2425300PE, putLtp= 283.65, PutUpsideTarget=300.669,PutdownsideAverage:260.95799999999997, lots=25, putaveragetime: 2024-10-15 13:10:00
+15/10/2024 13:02:52 UpsidePut: Previous buy put exited NIFTY17OCT2425300PE @ exitprice= 312.85 opening new buy trade  put@ NIFTY17OCT2425300PE @ 312.05,    Put Upside target : 330.773,Put downside Average  Val: 287.086, put aversge check time : 2024-10-15 13:10:00
+15/10/2024 13:05:49 UpsidePut: Previous buy put exited NIFTY17OCT2425300PE @ exitprice= 333.8 opening new buy trade  put@ NIFTY17OCT2425250PE @ 287.0,    Put Upside target : 304.22,Put downside Average  Val: 264.04, put aversge check time : 2024-10-15 13:15:00
+15/10/2024 13:25:01 Initiateing downside trade put @ NIFTY31OCT24FUT next put average time : 2024-10-15 13:30:00, normalised time= 2024-10-15 13:25:00, check time put =2024-10-15 13:30:00
+tradedictput: {'trade_1': {'tradeltp': 287.0, 'Lots': 1, 'Moneyinvested': 287.0, 'StockDevSymbol': 'NIFTY_17-Oct-2024_PE_25250', 'StockDevQty': 25}, 'trade_2': {'tradeltp': 256.7, 'Lots': 2, 'Moneyinvested': 513.4, 'StockDevSymbol': 'NIFTY_17-Oct-2024_PE_25250', 'StockDevQty': 50}}
+total_money_invested_put: 800.4
+average_money_invested_put: 266.8
+15/10/2024 13:25:01 NIFTY31OCT24FUT DownsidePut level reached:  NIFTY17OCT2425250PE @ 256.7 previous heikenashi close= 261.46250000000003 opening double lotsize put: 50,,updated put upside target: 277.47200000000004, put downside average: 236.164
+15/10/2024 13:25:01 Initiateing downside trade call @ NIFTY31OCT24FUT next downtrend call time : 2024-10-15 13:30:00, normalised time= 2024-10-15 13:25:00, check time call =2024-10-15 13:25:00
+tradedictcall: {'trade_1': {'tradeltp': 188.9, 'Lots': 1, 'Moneyinvested': 188.9, 'StockDevSymbol': 'NIFTY_17-Oct-2024_CE_24900', 'StockDevQty': 25}, 'trade_2': {'tradeltp': 174.85, 'Lots': 2, 'Moneyinvested': 349.7, 'StockDevSymbol': 'NIFTY_17-Oct-2024_CE_24900', 'StockDevQty': 50}}
+total_money_invested_call: 538.6
+average_money_invested_call: 179.53333333333333
+15/10/2024 13:25:01 NIFTY31OCT24FUT DownsideCall level reached :  NIFTY17OCT2424900CE @ 174.85 previous heikenashi close= 172.45 opening double lotsize call: 50, updated call upside target: 186.71466666666666, call downside average: 160.862
+15/10/2024 13:39:07 UpsideCall: Previous buy call exited NIFTY17OCT2424900CE@ 190.0 opening new buy trade  call @ NIFTY17OCT2424950CE @ 155.1, Call upside target Val : 164.406,Call downside average Val: 142.692, call aversge check time : 2024-10-15 13:45:00
+15/10/2024 14:15:01 Initiateing downside trade call @ NIFTY31OCT24FUT next downtrend call time : 2024-10-15 14:20:00, normalised time= 2024-10-15 14:15:00, check time call =2024-10-15 14:00:00
+tradedictcall: {'trade_1': {'tradeltp': 155.1, 'Lots': 2, 'Moneyinvested': 310.2, 'StockDevSymbol': 'NIFTY_17-Oct-2024_CE_24950', 'StockDevQty': 50}, 'trade_2': {'tradeltp': 141.75, 'Lots': 2, 'Moneyinvested': 283.5, 'StockDevSymbol': 'NIFTY_17-Oct-2024_CE_24950', 'StockDevQty': 100}}
+total_money_invested_call: 593.7
+average_money_invested_call: 148.425
+15/10/2024 14:15:01 NIFTY31OCT24FUT DownsideCall level reached :  NIFTY17OCT2424950CE @ 141.75 previous heikenashi close= 138.775 opening double lotsize call: 100, updated call upside target: 154.36200000000002, call downside average: 130.41
+15/10/2024 14:29:39 UpsideCall: Previous buy call exited NIFTY17OCT2424950CE@ 156.65 opening new buy trade  call @ NIFTY17OCT2424950CE @ 158.0, Call upside target Val : 167.48,Call downside average Val: 145.36, call aversge check time : 2024-10-15 14:35:00
+15/10/2024 15:05:01 Initiateing downside trade call @ NIFTY31OCT24FUT next downtrend call time : 2024-10-15 15:10:00, normalised time= 2024-10-15 15:05:00, check time call =2024-10-15 14:00:00
+tradedictcall: {'trade_1': {'tradeltp': 158.0, 'Lots': 2, 'Moneyinvested': 316.0, 'StockDevSymbol': 'NIFTY_17-Oct-2024_CE_24950', 'StockDevQty': 100}, 'trade_2': {'tradeltp': 141.95, 'Lots': 2, 'Moneyinvested': 283.9, 'StockDevSymbol': 'NIFTY_17-Oct-2024_CE_24950', 'StockDevQty': 200}}
+total_money_invested_call: 599.9
+average_money_invested_call: 149.975
+15/10/2024 15:05:01 NIFTY31OCT24FUT DownsideCall level reached :  NIFTY17OCT2424950CE @ 141.95 previous heikenashi close= 136.5 opening double lotsize call: 200, updated call upside target: 155.974, call downside average: 130.594
+15/10/2024 15:23:06 UpsideCall: Previous buy call exited NIFTY17OCT2424950CE@ 156.0 opening new buy trade  call @ NIFTY17OCT2424950CE @ 156.0, Call upside target Val : 165.36,Call downside average Val: 143.52, call aversge check time : 2024-10-15 15:30:00

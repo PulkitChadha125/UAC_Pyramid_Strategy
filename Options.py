@@ -242,6 +242,9 @@ def main_strategy():
                 ExitDate = params['ExitDate']
                 ExitDate = datetime.strptime(ExitDate, "%d-%b-%y")
                 combined_exit_datetime = datetime.combine(ExitDate, ExitTime)
+
+                print("EntryDate: ", EntryDate)
+                print("EntryTime: ", EntryTime)
                 print("ExitTime: ",ExitTime)
                 print("ExitDate: ", ExitDate)
                 print("Current time: ",datetime.now())
@@ -511,7 +514,7 @@ def main_strategy():
                             params['runtimeput'] = next_specific_part_time
 
 
-                    print()
+
                     # print("Callaveragetime :", params["callaveragetime"])
                     # print("putaverage time :", params["putaveragetime"])
                     # print("///////////////////////////////////////")
@@ -596,13 +599,16 @@ def main_strategy():
 
                             params["UpdatedPut"] = f"{params['BaseSymbol']}{params['FormatedDate']}{selectedstrikeput}PE"
                             params["putltp"]=AngelIntegration.get_ltp(segment='NFO', symbol=params['UpdatedPut'],token=get_token(params['UpdatedPut']))
-
+                            params["lotvaluePut"] = params["lotPut"]
+                            params["count"] = 1
+                            params["InitialLotsPut"] = params["Quantity"]
+                            params["UpdatedLotsPut"] = params["InitialLotsPut"]
                             tradedictput[f"trade_{len(tradedictput) + 1}"] = {
                                 "tradeltp": params["putltp"],
                                 "Lots": params["lotvaluePut"],
                                 "Moneyinvested": params["lotvaluePut"] * params["putltp"],
                                 "StockDevSymbol": params["StockDevPutSymbol"],
-                                "StockDevQty": params['UpdatedLotsPut'],
+                                "StockDevQty": params['Quantity'],
                             }
 
                             if params["Calculation"] == "POINT":
@@ -614,9 +620,7 @@ def main_strategy():
                                 params["DownsidePut"] = params["putltp"] * params["DownsideTradeDist"]*0.01
                                 params["DownsidePut"] = params["putltp"] - params["DownsidePut"]
 
-                            params["lotvaluePut"] = params["lotPut"]
-                            params["count"]=1
-                            params["InitialLotsPut"] = params["Quantity"]
+
                             OrderLog = (f"{timestamp} UpsidePut: Previous buy put exited {params['InitialPut']} @ exitprice= {exitprice} opening new buy trade  put@ "
                                             f"{params['UpdatedPut']} @ {params['putltp']},  "
                                         f"  Put Upside target : {params['UpsidePut']},"
@@ -681,12 +685,16 @@ def main_strategy():
                             params["StockDevCallSymbol"] = f"{params['BaseSymbol']}_{Stockdeveloper.convert_date(params['TradeExpiery'])}_CE_{params['callstrike']}"
                             params["UpdatedCall"] = f"{params['BaseSymbol']}{params['FormatedDate']}{selectedstrikecall}CE"
                             params["callltp"]=AngelIntegration.get_ltp(segment='NFO', symbol=params['UpdatedCall'],token=get_token(params['UpdatedCall']))
+                            params["lotvalueCall"] = params["lotCall"]
+                            params["count"] = 1
+                            params["InitialLotsCall"] = params["Quantity"]
+                            params["UpdatedLotsCall"] = params["InitialLotsCall"]
                             tradedictcall[f"trade_{len(tradedictcall) + 1}"] = {
                                 "tradeltp": params["callltp"],
                                 "Lots": params["lotvalueCall"],
                                 "Moneyinvested": params["lotvalueCall"] * params["callltp"],
                                 "StockDevSymbol": params["StockDevCallSymbol"],
-                                "StockDevQty": params['UpdatedLotsCall'],
+                                "StockDevQty": params['Quantity'],
                             }
                             if params["Calculation"] == "POINT":
                                 params["UpsideCall"] = params["callltp"] + params["UpsideTrdeDist"]
@@ -699,9 +707,7 @@ def main_strategy():
                                 params["DownsideCall"] = params["callltp"] * params["DownsideTradeDist"]*0.01
                                 params["DownsideCall"] = params["callltp"] - params["DownsideCall"]
 
-                            params["lotvalueCall"] = params["lotCall"]
-                            params["count"] = 1
-                            params["InitialLotsCall"] = params["Quantity"]
+
                             OrderLog = (f"{timestamp} UpsideCall: Previous buy call exited {params['Initialcall']}@ {exitprice} opening new buy trade  call @"
                                             f" {params['UpdatedCall']} @ {params['callltp']}, Call upside target Val : {params['UpsideCall'] },Call downside average Val: {params['DownsideCall']}"
                                         f", call aversge check time : {params['callaveragetime'] }"
@@ -744,7 +750,6 @@ def main_strategy():
                         write_to_order_logs(OrderLog)
                         print("InitialLotsPut: ",params["lotvaluePut"])
                         print("putltp: ", params["putltp"])
-                        params["InitialLotsPut"] = params["UpdatedLotsPut"]
                         params["UpdatedLotsPut"] = int(params["UpdatedLotsPut"] * 2)
                         params["lotvaluePut"] = params["lotvaluePut"] * 2
                         tradedictput[f"trade_{len(tradedictput) + 1}"] = {
@@ -815,9 +820,7 @@ def main_strategy():
                         print(OrderLog)
                         write_to_order_logs(OrderLog)
                         # if params["count"]>1:
-                        params["InitialLotsCall"] = params["UpdatedLotsCall"]
                         params["UpdatedLotsCall"] = int(params["UpdatedLotsCall"]*2)
-
                         params["lotvalueCall"] = params["lotvalueCall"] * 2
 
                         tradedictcall[f"trade_{len(tradedictcall) + 1}"] = {
